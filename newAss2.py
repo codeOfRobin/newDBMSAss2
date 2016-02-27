@@ -12,11 +12,6 @@ class BTreeNode:
     def insert(self,kvPair):
         key = kvPair[0]
         value = kvPair[1]
-        if key == 11:
-            print("<int>")
-            print(len(self.children) < maxChildren)
-            print(len(self.values) < maxChildren - 1)
-            print("<\int>")
         if len(self.children) < maxChildren and len(self.values) < maxChildren - 1:
             if len(self.children) == 0:  #it's a leaf
                 self.insertIntoArbit(kvPair)
@@ -142,7 +137,7 @@ class BTree:
 
 def main():
     tree = BTree()
-    for i,(k,v) in enumerate([(x,[x]) for x in range(1,11)]):
+    for i,(k,v) in enumerate([(x,[x]) for x in range(1,8)]):
         print("inserting "+ str((k,v)))
         tree.insert((k,v))
     print(tree.root.values)
