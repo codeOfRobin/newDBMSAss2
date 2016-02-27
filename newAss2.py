@@ -12,9 +12,13 @@ class BTreeNode:
     def insert(self,kvPair):
         key = kvPair[0]
         value = kvPair[1]
-        if len(self.children) < maxChildren and len(self.values) < maxChildren - 1:
+        if len(self.children) <= maxChildren and len(self.values) <= maxChildren - 1:
             if len(self.children) == 0:  #it's a leaf
-                self.insertIntoArbit(kvPair)
+                if len(self.values) == maxChildren - 1:
+                    self.splitIfNecessary(kvPair)
+                else:
+                    self.insertIntoArbit(kvPair)
+
             else: #it's not a leaf, so give to kids
                 index = len(self.values)
                 for i,(k,v) in enumerate(self.values):
@@ -41,18 +45,23 @@ class BTreeNode:
                 break
         self.values.insert(index,(key,value))
         mid = int(len(self.values)/2) if len(self.values)%2==0 else int((len(self.values)+1)/2)
+        midChildren = int(len(self.children)/2) if len(self.children)%2==0 else int((len(self.children)+1)/2)
         median = self.values[mid]
         print("median"+ str(median))
         del self.values[mid]
         leftNode = BTreeNode()
         leftNode.values = self.values[:mid]
-        leftNode.children = self.children[:mid]
+        leftNode.children = self.children[:midChildren]
         rightNode = BTreeNode()
         rightNode.values = self.values[mid:]
-        rightNode.children = self.children[mid:]
+        rightNode.children = self.children[midChildren:]
         leftNode.parentNode = self.parentNode
         rightNode.parentNode = self.parentNode
         index = len(self.parentNode.values)
+        if median[0] == 9:
+            print(self.values)
+            print(rightNode.values)
+            print(leftNode.values)
         for i,(k,v) in enumerate(self.parentNode.values):
             if self.values[0][0]<k:
                 index = i
@@ -78,7 +87,7 @@ class BTreeNode:
         if len(self.values) < maxChildren -1:
             self.values.insert(index,median)
         else:
-            splitIfNecessary(median)
+            self.splitIfNecessary(median)
 
     def insertIntoArbit(self,kvPair):
         key = kvPair[0]
@@ -137,12 +146,16 @@ class BTree:
 
 def main():
     tree = BTree()
-    for i,(k,v) in enumerate([(x,[x]) for x in range(1,8)]):
+    for i,(k,v) in enumerate([(x,[x]) for x in range(1,17)]):
         print("inserting "+ str((k,v)))
         tree.insert((k,v))
     print(tree.root.values)
     for child in tree.root.children:
+        print("child")
         print(child.values)
+        for grandChild in child.children:
+            print("grandChildchild")
+            print(grandChild.values)
 
 
 main()
