@@ -103,7 +103,7 @@ class BTreeNode:
         index = len(self.values)
         for i,(k,v) in enumerate(self.values):
             if k==key:
-                return self.values
+                return self.values[i]
             elif k>key:
                 index = i
                 break
@@ -112,10 +112,47 @@ class BTreeNode:
         else:
             return self.children[index].search(key)
 
+    def remove(self,key):
+        if self.isRoot or len(self.values) == 1:
+            for i,(k,v) in enumerate(self.values):
+                if k == key:
+                    if len(children) == 0:
+                        self.values.pop(i)
+                        return
+                    else:
+                        successor = self.getSuccessor(key)
+                        self.values[i] = successor
+                        # self.remove(successor[0])
+                        # self.replaceSuccessor((k,v),successor)
+                        return
+                elif k>key:
+                    return self.children[i].remove(key)
+            return self.children[-1].remove(key)
+
+    def replaceSuccessor(self,(k1,v1),(k2,v2)):
+        for i,(k,v) in enumerate(self.values):
+            if k==k1:
+                self.values[i] = (k2,v2)
+                return
+            elif k>k1:
+                self.children[i].replaceSuccessor((k1,v1),(k2,v2))
+        return self.children[-1].replaceSuccessor((k1,v1),(k2,v2))
+    def getSuccessor(self,key):
+        for i,(k,v) in enumerate(self.values):
+            if key < k:
+                if len(self.children) == 0:
+                    self.values.pop(i)#diff
+                    return(k,v)
+                else:
+                    return self.children[i].getSuccessor(key)
+            elif key == k:
+                return self.children[i+1].getSuccessor(key)
+        return self.children[-1].getSuccessor(key)
 
 class BTree:
     def __init__(self):
         self.root = None
+
     def insert(self, kvPair):
         key = kvPair[0]
         value = kvPair[1]
@@ -136,6 +173,13 @@ class BTree:
                 self.root = self.root.parentNode
                 del x
 
+    def remove(self,key):
+        if self.root == None:
+            return False:
+        self.root.remove(key)
+        if !self.root.isRoot:
+            self.root = self.root.children[0]
+
     def search(self,key):
         if self.root!=None:
             return self.root.search(key)
@@ -150,12 +194,11 @@ def main():
         print("inserting "+ str((k,v)))
         tree.insert((k,v))
     print(tree.root.values)
+    tree.insert((16,1024))
     for child in tree.root.children:
         print("child")
         print(child.values)
         for grandChild in child.children:
             print("grandChildchild")
             print(grandChild.values)
-
-
 main()
