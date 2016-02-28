@@ -128,9 +128,9 @@ class BTreeNode:
                         if leftSibling and len(self.leftSibling.values)>1:
                             successorNode.performLeftRotation(leftSibling,successorIndex)
                         elif rightSibling and len(self.rightSibling.values)>1:
-                            successorNode.performRightRotation()
+                            successorNode.performRightRotation(rightSibling,successorIndex)
                         else:
-                            successorNode.performFuses()
+                            successorNode.performFuses(leftSibling,rightSibling,successorIndex)
                     return
             elif k>key:
                 return self.children[i].remove(key)
@@ -153,11 +153,31 @@ class BTreeNode:
                 index = i
                 break
         parentPair = self.parentNode.values[index - 1]
-        self.parentNode.values[i] = leftSibling.values.pop()
+        self.parentNode.values[i] = rightSibling.values.pop(0)
         self.values[successorIndex] = parentPair
 
-    def performFuses(self):
-        return
+    def performFuses(self,successorIndex):
+        leftSibling, rightSibling = self.getSibilings()
+        index = 0
+        for i,c in self.parentNode.children:
+            if c == self:
+                index = i
+                break
+        parentPair = self.parentNode.values[index - 1]
+        self.values.pop(successorIndex)
+        if leftSibling:
+            self.parentNode.children.pop(index)
+            leftSibling.values.append(parentPair)
+            self.parentNode.remove(parentPair[0])
+        elif rightSibling:
+            self.parentNode.children.pop(index)
+            leftSibling.values.insert(0,parentPair)
+            self.parentNode.remove(parentPair[0])
+
+        if self.parent.isRoot and len(self.parent.values) == 0:
+            self.isRoot = True
+            self.parent.isRoot = False
+            self.parent = None
 
     def getSibilings(self):
         for i,c in enumerate(self.parentNode.children):
