@@ -113,36 +113,69 @@ class BTreeNode:
             return self.children[index].search(key)
 
     def remove(self,key):
-        if self.isRoot or len(self.values) == 1:
-            for i,(k,v) in enumerate(self.values):
-                if k == key:
-                    if len(children) == 0:
-                        self.values.pop(i)
-                        return
-                    else:
-                        successor = self.getSuccessor(key)
-                        self.values[i] = successor
-                        # self.remove(successor[0])
-                        # self.replaceSuccessor((k,v),successor)
-                        return
-                elif k>key:
-                    return self.children[i].remove(key)
-            return self.children[-1].remove(key)
-
-    def replaceSuccessor(self,(k1,v1),(k2,v2)):
         for i,(k,v) in enumerate(self.values):
-            if k==k1:
-                self.values[i] = (k2,v2)
-                return
-            elif k>k1:
-                self.children[i].replaceSuccessor((k1,v1),(k2,v2))
-        return self.children[-1].replaceSuccessor((k1,v1),(k2,v2))
+            if k == key:
+                if len(children) == 0:
+                    self.values.pop(i)
+                    return
+                else:
+                    (successorNode,successorIndex) = self.getSuccessor(key)
+                    self.values[i] = self.successorNode.values[successorIndex]
+                    if len(successorNode.values)>1:
+                        successorNode.values.pop(successorIndex)
+                    else:
+                        leftSibling, rightSibling = self.getSibilings()
+                        if leftSibling and len(self.leftSibling.values)>1:
+                            successorNode.performLeftRotation(leftSibling,successorIndex)
+                        elif rightSibling and len(self.rightSibling.values)>1:
+                            successorNode.performRightRotation()
+                        else:
+                            successorNode.performFuses()
+                    return
+            elif k>key:
+                return self.children[i].remove(key)
+        return self.children[-1].remove(key)
+
+    def performLeftRotation(self,leftSibling,successorIndex):
+        index = 0
+        for i,c in self.parentNode.children:
+            if c == self:
+                index = i
+                break
+        parentPair = self.parentNode.values[index - 1]
+        self.parentNode.values[i] = leftSibling.values.pop()
+        self.values[successorIndex] = parentPair
+
+    def performRightRotation(self,rightSibling,successorIndex):
+        index = 0
+        for i,c in self.parentNode.children:
+            if c == self:
+                index = i
+                break
+        parentPair = self.parentNode.values[index - 1]
+        self.parentNode.values[i] = leftSibling.values.pop()
+        self.values[successorIndex] = parentPair
+
+    def performFuses(self):
+        return
+
+    def getSibilings(self):
+        for i,c in enumerate(self.parentNode.children):
+            if c == self:
+                if i == 0:
+                    return (None,self.parentNode.children[i+1])
+                elif i == len(self.parentNode.children) - 1:
+                    return (self.parentNode.children[i-1],None)
+                else:
+                    return (self.parentNode.children[i-1],self.parentNode.children[i+1])
+        return (None,None)
+
     def getSuccessor(self,key):
         for i,(k,v) in enumerate(self.values):
             if key < k:
                 if len(self.children) == 0:
-                    self.values.pop(i)#diff
-                    return(k,v)
+                    # self.values.pop(i)#diff
+                    return(self,i)
                 else:
                     return self.children[i].getSuccessor(key)
             elif key == k:
@@ -175,9 +208,9 @@ class BTree:
 
     def remove(self,key):
         if self.root == None:
-            return False:
+            return False
         self.root.remove(key)
-        if !self.root.isRoot:
+        if not self.root.isRoot:
             self.root = self.root.children[0]
 
     def search(self,key):
