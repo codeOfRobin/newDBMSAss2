@@ -123,7 +123,6 @@ class BTreeNode:
             return self.children[index].search(key)
 
     def remove(self,key):
-        print(key)
         for i,(k,v) in enumerate(self.values):
             if k == key:
                 if len(self.children) == 0 and len(self.values)>1:
@@ -182,8 +181,6 @@ class BTreeNode:
             self.values.insert(0,parentPair)
 
     def performFuses(self):
-
-        print(self.parentNode.values)
         leftSibling, rightSibling = self.getSibilings()
         index = 0
         for i,c in enumerate(self.parentNode.children):
@@ -194,10 +191,14 @@ class BTreeNode:
         if leftSibling:
             self.parentNode.children.pop(index)
             leftSibling.values.append(parentPair)
+            if self.children:
+                leftSibling.children += self.children
 
         elif rightSibling:
             self.parentNode.children.pop(index)
             rightSibling.values.insert(0,parentPair)
+            if self.children:
+                rightSibling.children += self.children
 
         self.parentNode.values.pop(index - 1)
         if len(self.parentNode.values) == 0:
@@ -211,6 +212,11 @@ class BTreeNode:
                     self.parentNode.performRightRotation(rightSibling,0)
                 else:
                     self.parentNode.performFuses()
+                # if self.parentNode.parentNode:
+                #     print(self.parentNode.parentNode.children)
+                #     for i,c in enumerate(self.parentNode.parentNode.children):
+                #         if c==self.parentNode:
+                #             c.values = self.values
 
             else:
                 self.isRoot = True
@@ -271,6 +277,7 @@ class BTree:
         self.root.remove(key)
         if not self.root.isRoot:
             self.root = self.root.children[0]
+            self.root.isRoot = True
 
     def search(self,key):
         if self.root!=None:
@@ -354,9 +361,6 @@ def main():
     #             print(subqueries)
     #             for subquery in subqueries:
     #                 pass
-    #
-    #
-    #
 
     tree = BTree()
     for i,(k,v) in enumerate([(x,[x]) for x in range(1,17)]):
@@ -370,14 +374,7 @@ def main():
         for grandChild in child.children:
             print("grandChildchild")
             print(grandChild.values)
-    tree.remove(16)
-    tree.remove(15)
-    tree.remove(14)
-    tree.remove(13)
-    tree.remove(12)
-    tree.remove(11)
-    tree.remove(10)
-    tree.remove(9)
+
     print("AFTER REMOVAL\n\n\n")
     print(tree.root.values)
     for child in tree.root.children:
