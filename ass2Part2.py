@@ -1,12 +1,8 @@
-#ref:  http://cis.stvincent.edu/html/tutorials/swd/btree/btree.html
-#ref: https://github.com/alansammarone/BTree/blob/master/btree.py
-
 import sys
 import json
 import re
 from prettytable import PrettyTable
 import pickle
-
 schemas = {}
 records = {}
 relations = []
@@ -297,99 +293,50 @@ class BTree:
 def removeFirst(arr):
 	return arr[1:]
 
-
 def main():
-    if len(sys.argv) != 3:
-        raise ValueError('You done screwed up')
-
-    with open(sys.argv[1]) as f:
+    file = open("BTrees.obj",'rb')
+    BTrees = pickle.load(file)
+    file.close()
+    file = open("records.obj",'rb')
+    records = pickle.load(file)
+    file.close()
+    file = open("schemas.obj",'rb')
+    schemas = pickle.load(file)
+    file.close()
+    file = open("StringHashes.obj",'rb')
+    StringHashes = pickle.load(file)
+    file.close()
+    with open(sys.argv[2]) as f:
         content = [x[:-1] for x in f.readlines()]
-        numberOfTables = int(content[0][1:])
-        content = removeFirst(content)
-        for i in range(0,numberOfTables):
-            nameOfTable = content[0]
-            schemas[nameOfTable] = {}
-            records[nameOfTable] = {}
-            content = removeFirst(content)
-            numberOfAttrs = int(content[0][1:])
-            content = removeFirst(content)
-            attrNames = content[0].split(',')
-            content = removeFirst(content)
-
-            BTrees[nameOfTable] = {}
-            StringHashes[nameOfTable] = {}
-
-            for attr in attrNames:
-                BTrees[nameOfTable][attr] = BTree()
-                StringHashes[nameOfTable][attr] = {}
-            numberOfRecords = int(content[0][1:])
-            content = removeFirst(content)
-            for j in range(0, numberOfRecords):
-            	dic = {}
-            	tup = content[j].split(',')
-            	for k,attr in enumerate(attrNames):
-                    try:
-                        BTrees[nameOfTable][attr].insert((int(tup[k]),int(tup[0])))
-                        schemas[nameOfTable][k] = {}
-                        schemas[nameOfTable][k]["type"] = "int"
-                        schemas[nameOfTable][k]["attr"] = attr
-                        dic[attr] = int(tup[k])
-                    except ValueError:
-                        if tup[k] in StringHashes[nameOfTable][attr]:
-                            StringHashes[nameOfTable][attr][tup[k]].append(int(tup[0]))
+        for query in content:
+            tup = query.split(" ")
+            if tup[0] == "insert":
+                nameOfTable = tup[1]
+                values = tup[2].split(",")
+                dic = {}
+                attrNames = [schemas[nameOfTable][k]["attr"] for k in sorted(schemas[nameOfTable].keys())]
+                for i,value in enumerate(values):
+                    attr = attrNames[i]
+                    dic[attr] = value
+                    if schemas[nameOfTable][i]["type"] == "string":
+                        if value in StringHashes[nameOfTable][attr]:
+                            StringHashes[nameOfTable][attr][value].append(int(values[0]))
                         else:
-                            StringHashes[nameOfTable][attr][tup[k]] = [int(tup[0])]
-                        schemas[nameOfTable][k] = {}
-                        schemas[nameOfTable][k]["type"] = "string"
-                        schemas[nameOfTable][k]["attr"] = attr
-                        dic[attr] = tup[k]
-            	records[nameOfTable][tup[0]] = dic
-            content = content[numberOfRecords:]
-            content = removeFirst(content)
-        content = removeFirst(content)
+                            StringHashes[nameOfTable][attr][value] = [int(values[0])]
+                    else:
+                        BTrees[nameOfTable][attr].insert((int(value),int(values[0])))
+                records[nameOfTable][values[0]] = dic
+            elif tup[0] == "update":
+                pass
+            elif tup[0] == "delete":
+                pass
+            else:
+                query = query[8:-1]
+                regexPattern = '|'.join(map(re.escape, ['(',')']))
+                subqueries = [x for x in re.split(regexPattern,query) if x!='']
+                print(subqueries)
+                for subquery in subqueries:
+                    pass
 
-        filehandler = open("BTrees.obj","wb")
-        pickle.dump(BTrees,filehandler)
-        filehandler.close()
-        filehandler = open("schemas.obj","wb")
-        pickle.dump(schemas,filehandler)
-        filehandler.close()
-        filehandler = open("StringHashes.obj","wb")
-        pickle.dump(StringHashes,filehandler)
-        filehandler.close()
-        filehandler = open("records.obj","wb")
-        pickle.dump(records,filehandler)
-        filehandler.close()
 
-        # print(BTrees["Product"]["Id"].root.values)
-        # for child in BTrees["Product"]["Id"].root.children:
-        #     print(child.values)
-        print("records")
-        print(json.dumps(records,sort_keys=True, indent=4))
-        print("schemas")
-        print(json.dumps(schemas,sort_keys=True, indent=4))
-        print("StringHashes")
-        print(json.dumps(StringHashes,sort_keys=True, indent=4))
-        #
-    # tree = BTree()
-    # for i,(k,v) in enumerate([(x,[x]) for x in range(1,17)]):
-    #     print("inserting "+ str((k,v)))
-    #     tree.insert((k,v))
-    # print(tree.root.values)
-    # tree.insert((16,1024))
-    # for child in tree.root.children:
-    #     print("child")
-    #     print(child.values)
-    #     for grandChild in child.children:
-    #         print("grandChildchild")
-    #         print(grandChild.values)
-    #
-    # print("AFTER REMOVAL\n\n\n")
-    # print(tree.root.values)
-    # for child in tree.root.children:
-    #     print("child")
-    #     print(child.values)
-    #     for grandChild in child.children:
-    #         print("grandChildchild")
-    #         print(grandChild.values)
 main()

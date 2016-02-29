@@ -1,0 +1,1 @@
+insert Product 6,Book,Orreilly,1
