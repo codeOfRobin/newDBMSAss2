@@ -8,6 +8,7 @@ records = {}
 relations = []
 BTrees = {}
 StringHashes = {}
+types = {}
 minChildren = 2
 maxChildren = 4
 class BTreeNode:
@@ -293,7 +294,20 @@ class BTree:
 def removeFirst(arr):
 	return arr[1:]
 
+def idsForNonJoinCondition(condition,nameOfTable):
+    regexPattern = '|'.join(map(re.escape, ['<','>','=']))
+    parts = [x for x in re.split(regexPattern,condition) if x!='']
+    attr = parts[0]
+    if types[nameOfTable][attr] == "int":
+        if condition[len(attr)] == "=":
+            tup = BTrees[nameOfTable][attr].search(int(parts[1]))
+            return tup[0].values[tup[1]][1]
+    else:
+        return StringHashes[nameOfTable][attr][parts[1]]
+
+
 def main():
+    global types,BTrees,records,schemas,StringHashes
     file = open("BTrees.obj",'rb')
     BTrees = pickle.load(file)
     file.close()
@@ -306,6 +320,12 @@ def main():
     file = open("StringHashes.obj",'rb')
     StringHashes = pickle.load(file)
     file.close()
+    file = open("types.obj",'rb')
+    types = pickle.load(file)
+    file.close()
+    print(idsForNonJoinCondition("ProductName=Mouse","Product"))
+    exit()
+
     with open(sys.argv[2]) as f:
         content = [x[:-1] for x in f.readlines()]
         for query in content:

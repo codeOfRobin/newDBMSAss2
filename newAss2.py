@@ -12,6 +12,7 @@ records = {}
 relations = []
 BTrees = {}
 StringHashes = {}
+types = {}
 minChildren = 2
 maxChildren = 4
 class BTreeNode:
@@ -310,6 +311,7 @@ def main():
             nameOfTable = content[0]
             schemas[nameOfTable] = {}
             records[nameOfTable] = {}
+            types[nameOfTable] = {}
             content = removeFirst(content)
             numberOfAttrs = int(content[0][1:])
             content = removeFirst(content)
@@ -333,6 +335,7 @@ def main():
                         schemas[nameOfTable][k] = {}
                         schemas[nameOfTable][k]["type"] = "int"
                         schemas[nameOfTable][k]["attr"] = attr
+                        types[nameOfTable][attr] = "int"
                         dic[attr] = int(tup[k])
                     except ValueError:
                         if tup[k] in StringHashes[nameOfTable][attr]:
@@ -341,6 +344,7 @@ def main():
                             StringHashes[nameOfTable][attr][tup[k]] = [int(tup[0])]
                         schemas[nameOfTable][k] = {}
                         schemas[nameOfTable][k]["type"] = "string"
+                        types[nameOfTable][attr] = "string"
                         schemas[nameOfTable][k]["attr"] = attr
                         dic[attr] = tup[k]
             	records[nameOfTable][tup[0]] = dic
@@ -359,6 +363,9 @@ def main():
         filehandler.close()
         filehandler = open("records.obj","wb")
         pickle.dump(records,filehandler)
+        filehandler.close()
+        filehandler = open("types.obj","wb")
+        pickle.dump(types,filehandler)
         filehandler.close()
 
         # print(BTrees["Product"]["Id"].root.values)
