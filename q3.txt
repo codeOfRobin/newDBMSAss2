@@ -1,0 +1,1 @@
+delete Product where ProductName=Keyboard

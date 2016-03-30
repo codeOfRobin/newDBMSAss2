@@ -241,6 +241,16 @@ class BTreeNode:
             elif key == k:
                 return self.children[i+1].getSuccessor(key)
         return self.children[-1].getSuccessor(key)
+    def inOrderTraverse(self):
+        i=0
+        for value in self.values:
+            if len(self.children) != 0:
+                self.children[i].inOrderTraverse()
+            inOrderIds.append(value)
+            i+=1
+        if len(self.children) != 0:
+            self.children[-1].inOrderTraverse()
+
 
 class BTree:
     def __init__(self):
@@ -293,7 +303,7 @@ class BTree:
 
 def removeFirst(arr):
 	return arr[1:]
-
+inOrderIds = []
 def idsForNonJoinCondition(condition,nameOfTable):
     regexPattern = '|'.join(map(re.escape, ['<','>','=']))
     parts = [x for x in re.split(regexPattern,condition) if x!='']
@@ -302,10 +312,66 @@ def idsForNonJoinCondition(condition,nameOfTable):
         if condition[len(attr)] == "=":
             tup = BTrees[nameOfTable][attr].search(int(parts[1]))
             return tup[0].values[tup[1]][1]
+        if condition[len(attr)] == ">":
+            tup = getIdsFromInOrder(nameOfTable, attr, ">", int(parts[1]))
+            results = []
+            for ide in tup:
+                if isinstance(ide[1], list):
+                    results + ide[1]
+                else:
+                    results.append(ide[1])
+            return results
+        if condition[len(attr)] == "<":
+            tup = getIdsFromInOrder(nameOfTable, attr, "<", int(parts[1]))
+            results = []
+            for ide in tup:
+                if isinstance(ide[1], list):
+                    results + ide[1]
+                else:
+                    results.append(ide[1])
+            return results
     else:
         return StringHashes[nameOfTable][attr][parts[1]]
 
-
+def getIdsFromInOrder(table, attr, kindOfEquality, comparisonValues):
+    global inOrderIds
+    start = 0
+    end = 0
+    if kindOfEquality == "b":
+        BTrees[table][attr].inOrderTraverse()
+        i=0
+        for (key,v) in inOrderIds:
+            if key >= comparisonValues[0]:
+                start = i
+            elif key>=comparisonValues[1]:
+                end = i
+                break
+            i+=1
+        cutList = inOrderIds[start:end]
+        inOrderIds = []
+        return cutList
+    elif kindOfEquality == ">":
+        BTrees[table][attr].inOrderTraverse()
+        i=0
+        for (key,v) in inOrderIds:
+            if key >= comparisonValues:
+                start = i + 1
+                break
+            i+=1
+        cutList = inOrderIds[start:]
+        inOrderIds = []
+        return cutList
+    elif kindOfEquality == "<":
+        BTrees[table][attr].inOrderTraverse()
+        i=0
+        for (key,v) in inOrderIds:
+            if key >= comparisonValues:
+                end = i
+                break
+            i+=1
+        cutList = inOrderIds[:end]
+        inOrderIds = []
+        return cutList
 def main():
     global types,BTrees,records,schemas,StringHashes
     file = open("BTrees.obj",'rb')
@@ -346,7 +412,19 @@ def main():
             elif tup[0] == "update":
                 pass
             elif tup[0] == "delete":
-                pass
+                table = tup[1]
+                ids = idsForNonJoinCondition(tup[3],table)
+                # for ide in ids:
+                #     for key in schemas[table]:
+                #         if schemas[table][key]["type"] == "int":
+                #             BTrees[table][schemas[table][key]["attr"]].remove(ide)
+                #         else:
+                #             stringToRemove = records[table][str(ide)][schemas[table][key]["attr"]]
+                #             print(StringHashes[table][schemas[table][key]["attr"]][stringToRemove])
+                #             StringHashes[table][schemas[table][key]["attr"]][stringToRemove].remove(ide)
+                #             pass
+                map(records[table].pop, ids)
+                print(json.dumps(records[table],sort_keys=True, indent=4))
             elif tup[0] == "select":
                 columns = tup[1].split(",")
                 table = tup[3]
