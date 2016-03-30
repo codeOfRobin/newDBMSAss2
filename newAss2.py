@@ -245,7 +245,15 @@ class BTreeNode:
             elif key == k:
                 return self.children[i+1].getSuccessor(key)
         return self.children[-1].getSuccessor(key)
-
+    def inOrderTraverse(self):
+        i=0
+        for value in self.values:
+            if len(self.children) != 0:
+                self.children[i].inOrderTraverse()
+            print(value)
+            i+=1
+        if len(self.children) != 0:
+            self.children[-1].inOrderTraverse()
 class BTree:
     def __init__(self):
         self.root = None
@@ -300,7 +308,7 @@ def removeFirst(arr):
 
 
 def main():
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 2:
         raise ValueError('You done screwed up')
 
     with open(sys.argv[1]) as f:
@@ -367,23 +375,22 @@ def main():
         filehandler = open("types.obj","wb")
         pickle.dump(types,filehandler)
         filehandler.close()
-
         # print(BTrees["Product"]["Id"].root.values)
         # for child in BTrees["Product"]["Id"].root.children:
         #     print(child.values)
-        print("records")
-        print(json.dumps(records,sort_keys=True, indent=4))
-        print("schemas")
-        print(json.dumps(schemas,sort_keys=True, indent=4))
-        print("StringHashes")
-        print(json.dumps(StringHashes,sort_keys=True, indent=4))
+        # print("records")
+        # print(json.dumps(records,sort_keys=True, indent=4))
+        # print("schemas")
+        # print(json.dumps(schemas,sort_keys=True, indent=4))
+        # print("StringHashes")
+        # print(json.dumps(StringHashes,sort_keys=True, indent=4))
         #
     # tree = BTree()
     # for i,(k,v) in enumerate([(x,[x]) for x in range(1,17)]):
     #     print("inserting "+ str((k,v)))
     #     tree.insert((k,v))
-    # print(tree.root.values)
     # tree.insert((16,1024))
+    # tree.inOrderTraverse()
     # for child in tree.root.children:
     #     print("child")
     #     print(child.values)

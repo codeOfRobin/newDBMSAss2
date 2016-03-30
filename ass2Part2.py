@@ -323,10 +323,7 @@ def main():
     file = open("types.obj",'rb')
     types = pickle.load(file)
     file.close()
-    print(idsForNonJoinCondition("ProductName=Mouse","Product"))
-    exit()
-
-    with open(sys.argv[2]) as f:
+    with open(sys.argv[1]) as f:
         content = [x[:-1] for x in f.readlines()]
         for query in content:
             tup = query.split(" ")
@@ -350,13 +347,20 @@ def main():
                 pass
             elif tup[0] == "delete":
                 pass
-            else:
-                query = query[8:-1]
-                regexPattern = '|'.join(map(re.escape, ['(',')']))
-                subqueries = [x for x in re.split(regexPattern,query) if x!='']
-                print(subqueries)
-                for subquery in subqueries:
-                    pass
-
+            elif tup[0] == "select":
+                columns = tup[1].split(",")
+                table = tup[3]
+                ids = idsForNonJoinCondition(tup[5],table)
+                results = []
+                for ide in ids:
+                    dic = {}
+                    i=0
+                    for col in columns:
+                        dic[col] = records[table][str(ide)][col]
+                    results.append(dic)
+                t = PrettyTable([x for x in columns])
+                for row in results:
+                    t.add_row([row[key] for key in columns])
+                print(t)
 
 main()
