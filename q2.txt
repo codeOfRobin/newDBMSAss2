@@ -1,1 +1,1 @@
-insert Product 6,Book,Orreilly,1
+insert sailor 10001,Oreilly,52

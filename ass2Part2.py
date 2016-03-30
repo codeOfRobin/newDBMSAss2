@@ -409,6 +409,8 @@ def main():
                     else:
                         BTrees[nameOfTable][attr].insert((int(value),int(values[0])))
                 records[nameOfTable][values[0]] = dic
+                tupe = BTrees["sailor"]["sid"].search(10001)
+                print(records["sailor"][str(tupe[0].values[tupe[1]][1])])
             elif tup[0] == "update":
                 pass
             elif tup[0] == "delete":
